@@ -128,51 +128,120 @@ public class ClientSwing {
   }
   
   private void clientSetup() {
-    
-      //this is where you restore the user profile
-      //...
-    
-  }
+    publisher=topicManager.publisherOf();
+      for (entity.Subscriber registeredSub : topicManager.mySubscriptions()){
+           SubscriberImpl restoredSub = new SubscriberImpl(ClientSwing.this);
+           my_subscriptions.put(registeredSub.getTopic().getName(), restoredSub);
+           for( Message message : topicManager.messagesFrom(registeredSub.getTopic())){
+               restoredSub.onEvent(registeredSub.getTopic().getName(), message.getContent());
+           }
+      }
+  }//this is where you restore the user profile
 
+  
+  private void updateTopics(){
+     topic_list_TextArea.setText(null);
+                for (String topic : topicManager.topics()){
+                    topic_list_TextArea.append(topic + "\n");
+                }
+}
+  
   class showTopicsHandler implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      
-      //...
-    
-    }
-  }
+    if (topicManager.topics()!=null){
+               updateTopics();
+            }
+            else{
+                topic_list_TextArea.setText(null);
+                topic_list_TextArea.append("No topics yet\n");
+            }
+                argument_TextField.grabFocus();
+            }
+        }
 
   class newPublisherHandler implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      
-      //...
-    
-    }
-  }
+     String topic = getArg();
+            if (topic.isEmpty()){
+                messages_TextArea.append(getTime() + "SYSTEM: Missing input.\n"); 
+            }
+            else{
+                 if (topic.equals(publisherTopic))
+                        System.out.println("WARNING -> ClientsWing -> Already publishing on topic");
+                 else if (publisherTopic!=null){
+                        System.out.println("INFO -> Clientswing -> Trying to remove : " + publisherTopic);
+                        topicManager.removePublisherFromTopic(publisherTopic);
 
+                    }
+                publisher = topicManager.addPublisherToTopic(topic);
+                publisherTopic=topic;
+                publisher_TextArea.setText(null);
+                publisher_TextArea.append(topic + "\n");
+                messages_TextArea.append(getTime() + "SYSTEM: You are publisher of topic '"+ topic + "̈́'.\n"); 
+            }
+            updateTopics();
+        }
+    }
+  
   class newSubscriberHandler implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      
-      //...
-    
+           String topic = getArg();
+            if (topic.isEmpty() || my_subscriptions.containsKey(topic) || topic == publisherTopic)
+                messages_TextArea.append(getTime() + "SYSTEM: Invalid operation.\n"); 
+            else if (topicManager.isTopic(topic)){
+                Subscriber newsubscriber;
+                newsubscriber = new SubscriberImpl(ClientSwing.this);
+                topicManager.subscribe(topic, newsubscriber);              // Note: adding subscriber to the actual publishers list
+                my_subscriptions.put(topic, newsubscriber);                // Note: adding subscriber to clientSwing subscribers list
+                my_subscriptions_TextArea.append(topic + "\n");
+                messages_TextArea.append(getTime() + "SYSTEM: Subscribed on topic '"+ topic + "̈́'.\n"); 
+            }
+            else{
+                messages_TextArea.append(getTime() + "SYSTEM: Topic '"+ topic + "̈́' does not exist.\n");
+                System.out.println("WARNING -> Clientswing -> Topic '"+ topic + "̈́' does not exist.");
+            }
+            updateTopics();
+        }
     }
-  }
-
-  class UnsubscribeHandler implements ActionListener {
-    public void actionPerformed(ActionEvent e) {
-      
-      //...
-    
+  
+  class UnsubscribeHandler implements ActionListener{
+        public void actionPerformed(ActionEvent e) {
+            String topic = getArg();
+            try{
+                if (topicManager.unsubscribe(topic,my_subscriptions.get(topic)) ){
+                        my_subscriptions.remove(topic);
+                        my_subscriptions_TextArea.setText(null);
+                       for (String otherTopics : my_subscriptions.keySet()){
+                             my_subscriptions_TextArea.append(otherTopics+"\n");
+                       }
+                        System.out.println("INFO -> Clientswing -> Unsubscribed from '"+topic+"'.");
+                }
+                else{
+                messages_TextArea.append(getTime() + "SYSTEM: Topic '"+ topic + "̈́' does not exist.\n");
+                }
+            }
+            catch(Exception ex){
+               System.out.println("ERROR -> Clientswing -> Error, no active subscribers to remove.");
+            }
+            updateTopics();
+        }
     }
-  }
-
-  class postEventHandler implements ActionListener {
-    public void actionPerformed(ActionEvent e) {
-      
-      //...
-    
+  
+    class postEventHandler implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            if (publisher != null){
+                String event = getArg();
+                updateTopics();
+                if (!event.isEmpty()){
+                    publisher.publish(publisherTopic, event);
+                    messages_TextArea.append(getTime() + "You published: " + event + "\n");
+                }
+            }
+            else{
+                messages_TextArea.append(getTime() + "SYSTEM: No publisher exist.\n");
+            }
+        }
     }
-  }
 
   class CloseAppHandler implements ActionListener {
     public void actionPerformed(ActionEvent e) {

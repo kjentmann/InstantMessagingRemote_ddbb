@@ -5,6 +5,8 @@ import apiREST.apiREST_Publisher;
 import apiREST.apiREST_Subscriber;
 import apiREST.apiREST_Topic;
 import entity.Message;
+import entity.Topic;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -51,9 +53,11 @@ public class TopicManagerStub implements TopicManager {
   public Set<String> topics() {
     
     Set<String> topic_names = new HashSet<String>();
+    for ( Topic topic : apiREST_Topic.allTopics() ){
+        topic_names.add(topic.getName());
+    }
     //...
     return topic_names;
-
   }
 
   public boolean subscribe(String topic, Subscriber subscriber) {
@@ -71,24 +75,18 @@ public class TopicManagerStub implements TopicManager {
   }
   
   public Publisher publisherOf() {
-    
+      return (Publisher) apiREST_Publisher.PublisherOf(user);
     //...
-    return null;
-    
   }
 
   public List<entity.Subscriber> mySubscriptions() {
-      
+      return apiREST_Subscriber.mySubscriptions(user);
     //...
-    return null;
-    
   }
 
   public List<Message> messagesFrom(entity.Topic topic) {
-      
+      return apiREST_Message.messagesFrom(topic);
     //...
-    return null;
-    
   }
 
 }
