@@ -5,6 +5,8 @@ import entity.Message;
 import subscriber.SubscriberImpl;
 import java.awt.*;
 import java.awt.event.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +40,7 @@ public class ClientSwing {
 
     String login = ((TopicManagerStub) topicManager).user.getLogin();
     frame = new JFrame("Publisher/Subscriber demo, user : " + login);
-    frame.setSize(300, 300);
+    frame.setSize(900,350);
     frame.addWindowListener(new CloseWindowHandler());
 
     topic_list_TextArea = new JTextArea(5, 10);
@@ -99,11 +101,32 @@ public class ClientSwing {
 
     //this is where you restore the user profile
     clientSetup();
+    messages_TextArea.setEditable(false);
+    topic_list_TextArea.setEditable(false);
+    my_subscriptions_TextArea.setEditable(false);
+    publisher_TextArea.setEditable(false);
 
-    frame.pack();
+    
+    //frame.pack();
     frame.setVisible(true);
-  }
+     messages_TextArea.append(getTime() + "SERVER: Client "+((TopicManagerStub)topicManager).user.getLogin()+ " "+((TopicManagerStub)topicManager).server_status + "\n"); 
+     argument_TextField.grabFocus();
 
+  }
+  
+  private static String getTime() {
+     SimpleDateFormat sdfTime = new SimpleDateFormat("yyyy-MM-dd HH:mm ");
+     return sdfTime.format(new Date());
+  }
+  
+  private String getArg(){
+      
+      String arg = argument_TextField.getText();
+      argument_TextField.setText(null);
+      argument_TextField.grabFocus();
+      return arg;
+  }
+  
   private void clientSetup() {
     
       //this is where you restore the user profile

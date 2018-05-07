@@ -10,8 +10,10 @@ package apiREST;
  * @author juanluis
  */
 public interface Cons {
-  
-  String SERVER_REST = "http://localhost:8080/InstantMessagingRemote_server_with_ddbb/webresources";
-  String SERVER_WEBSOCKET = "ws://localhost:8080/InstantMessagingRemote_server_with_ddbb/ws";
+  //String SERVER_IP = "46.249.225.122:62987"; // Remote Rasperry PI server in Norway
+  String SERVER_IP = "localhost:22223";     //  Server running localhost      
+  String SERVER_REST = "http://"+SERVER_IP+"/server_ddbbInstantRemote/webresources";
+  String SERVER_WEBSOCKET = "ws://"+SERVER_IP+"/server_ddbbInstantRemote/ws";
   
 }
+

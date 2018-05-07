@@ -21,17 +21,22 @@ public class WebSocketClient {
   static Map<String, Subscriber> subscriberMap;
   static Session session;
 
-  public static void newInstance() {
+    public static String newInstance() { // Note: called when new clent created
     subscriberMap = new HashMap<String, Subscriber>();
     try {
       WebSocketContainer container = ContainerProvider.getWebSocketContainer();
       session = container.connectToServer(WebSocketClient.class,
         URI.create(Cons.SERVER_WEBSOCKET));
+        System.out.println("INFO -> Websocket -> Connected to server.");
+        return "Connected to " + Cons.SERVER_WEBSOCKET;
+
     } catch (Exception e) {
-      e.printStackTrace();
+        System.out.println("ERROR -> WebSocket -> No connection to the remote server!.");
+        return "ERROR. Can't connect to " + Cons.SERVER_WEBSOCKET + "\nPlease ensure that server is running and restart this client to connect.";
+        //e.printStackTrace();
     }
   }
-
+    
   //only one subscriber per topic allowed:
   public static synchronized void addSubscriber(String topic_name, Subscriber subscriber) {
     

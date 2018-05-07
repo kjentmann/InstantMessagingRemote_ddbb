@@ -16,9 +16,10 @@ import webSocketService.WebSocketClient;
 public class TopicManagerStub implements TopicManager {
 
   public entity.User user;
-
+  public String server_status;
+  
   public TopicManagerStub(entity.User user) {
-    WebSocketClient.newInstance();
+    this.server_status = WebSocketClient.newInstance();
     this.user = user;
   }
 
