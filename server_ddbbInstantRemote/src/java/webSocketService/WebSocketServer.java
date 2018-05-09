@@ -72,8 +72,9 @@ public class WebSocketServer {
           System.out.println("Closed session: " + session.getId());
           closedSessions.add(session);
         } else {
-          if (subscriptions.containsKey(session) && 
-              subscriptions.get(session).contains(topic_name)) {
+                System.out.println("DEBUG -> Server ->found active session");
+
+          if (subscriptions.containsKey(session) && subscriptions.get(session).contains(topic_name)) {
             session.getBasicRemote().sendText(json_message);
             System.out.println("Sending: " + json_message + "\nto session_Id:" + session.getId());
           } 

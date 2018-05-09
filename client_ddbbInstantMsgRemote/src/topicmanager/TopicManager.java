@@ -13,6 +13,7 @@ public interface TopicManager {
   Set<String> topics();
   boolean     subscribe(String topic, Subscriber subscriber);
   boolean     unsubscribe(String topic, Subscriber subscriber);
+  String      reconnect();
   
   //to restore the user profile:
   Publisher   publisherOf();

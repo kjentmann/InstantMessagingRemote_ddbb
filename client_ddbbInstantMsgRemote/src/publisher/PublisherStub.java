@@ -15,8 +15,7 @@ public void publish(String topic, String event) {
   message.setTopic(apiREST_Topic.retrieveTopicByName(topic));
   message.setContent(event);
   apiREST_Message.createMessage(message);
-  //...
-}
+}//...
 
   public String topicName() {
     return topic.getName();

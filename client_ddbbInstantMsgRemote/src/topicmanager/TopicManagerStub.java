@@ -28,35 +28,35 @@ public class TopicManagerStub implements TopicManager {
   public void close() {
     WebSocketClient.close();
   }
-
+  public String reconnect(){
+    this.server_status = WebSocketClient.newInstance();
+    return server_status;
+  }
   public Publisher addPublisherToTopic(String topic) {
-      //PublisherStub newPub;
-      Topic newtopic = new Topic();
-      newtopic.setName(topic);
-      //newtopic = apiREST_Topic.retrieveTopicByName(topic); // NO NEED
-      //newPub = new PublisherStub(newtopic);
-   //  publisher.Publisher newPubl = new publisher.Publisher();
-    // Publisher newPub = 
-    publisher.Publisher pub2 = new PublisherStub(newtopic);//newPub.Publisher();
-    entity.Publisher pub3 = new entity.Publisher();//Stub(newtopic);//newPub.Publisher();pub3.s
-    pub3.setTopic(newtopic);
-    pub3.setUser(user);
-    //Publisher pub1 = new PublisherStub(newtopic);         
-     if (apiREST_Publisher.create_and_return_Publisher(pub3)==null){
+    Topic newtopic = new Topic();
+    newtopic.setName(topic);
+    publisher.Publisher localPub = new PublisherStub(newtopic);
+    entity.Publisher remotePub = new entity.Publisher();
+    remotePub.setTopic(newtopic);
+    remotePub.setUser(user);
+     if (apiREST_Publisher.create_and_return_Publisher(remotePub)==null){
          return null;
      }
-    return pub2;
+    return localPub;
   }
 
   public int removePublisherFromTopic(String topic) {
       entity.Publisher removePub = new entity.Publisher();
       removePub.setTopic(apiREST_Topic.retrieveTopicByName(topic));
       removePub.setUser(user);
-      System.out.println("DEBUG->TOpicMangager->Request to delete: " + removePub);
+      System.out.println("Info -> TOpicMangager-> Request to remove: " + removePub);
+      try{
       apiREST_Publisher.deletePublisher(removePub);
-    //...
+      }
+      catch (Exception e){
+        System.out.println("ERROR -> TOpicMangager-> Failed to remove: " + removePub);
+      }
     return -1;
-
   }
 
   public boolean isTopic(String topic_name) {
@@ -67,7 +67,6 @@ public class TopicManagerStub implements TopicManager {
   }
 
   public Set<String> topics() {
-    
     Set<String> topic_names = new HashSet<String>();
     for ( Topic topic : apiREST_Topic.allTopics() ){
         topic_names.add(topic.getName());
@@ -80,13 +79,14 @@ public class TopicManagerStub implements TopicManager {
     entity.Subscriber sub = new entity.Subscriber();
     sub.setUser(user);
     sub.setTopic(apiREST_Topic.retrieveTopicByName(topic));
-    apiREST_Subscriber.create_and_return_Subscriber(sub);
-
-    
-      
-    //...
-    return true;
-
+    try{
+        apiREST_Subscriber.create_and_return_Subscriber(sub);
+        return true;
+    }
+    catch (Exception e){
+        System.out.println("ERROR -> TopicMangager-> Failed to subscribe: " + topic);
+        return false;
+    }
   }
 
   public boolean unsubscribe(String topic, Subscriber subscriber) {
@@ -94,35 +94,23 @@ public class TopicManagerStub implements TopicManager {
       removeSub.setTopic(apiREST_Topic.retrieveTopicByName(topic));
       removeSub.setUser(user);
       return apiREST_Subscriber.deleteSubscriber(removeSub);
-    //...
-  //  return true;
-
   }
   
   public Publisher publisherOf() {
-     //entity.Publisher pub= apiREST_Publisher.PublisherOf(user);
-     //Topic topic = pub.getTopic();
-     //Publisher pub2 = new PublisherStub(topic); 
-     //Publisher pub3 = new PublisherStub(apiREST_Publisher.PublisherOf(user).getTopic()); 
      try{
      return new PublisherStub(apiREST_Publisher.PublisherOf(user).getTopic()); 
      }
      catch(Exception e){
          return null;
      }
-     //return pub2;
-// return (Publisher) apiREST_Publisher.PublisherOf(user);
-    //...
   }
 
   public List<entity.Subscriber> mySubscriptions() {
       return apiREST_Subscriber.mySubscriptions(user);
-    //...
   }
 
   public List<Message> messagesFrom(entity.Topic topic) {
       return apiREST_Message.messagesFrom(topic);
-    //...
   }
 
 }

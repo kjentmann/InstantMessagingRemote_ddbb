@@ -16,6 +16,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import subscriber.Subscriber;
 import util.MySubscriptionClose;
+import util.MySubscriptionRequest;
 
 @ClientEndpoint
 public class WebSocketClient {
@@ -23,7 +24,7 @@ public class WebSocketClient {
   static Map<String, Subscriber> subscriberMap;
   static Session session;
 
-    public static String newInstance() { // Note: called when new clent created
+    public static String newInstance() { // Note: called when new clent created and on reconnect
     subscriberMap = new HashMap<String, Subscriber>();
     try {
       WebSocketContainer container = ContainerProvider.getWebSocketContainer();
@@ -41,17 +42,49 @@ public class WebSocketClient {
     
   //only one subscriber per topic allowed:
   public static synchronized void addSubscriber(String topic_name, Subscriber subscriber) {
-    subscriberMap.put(topic_name,subscriber);
-     //...
-    
-  }
+     if (!subscriberMap.containsKey(topic_name)){
+        System.out.println("INFO -> WebSocet -> Trying to request for new subscriber..");
+        Gson gson = new Gson();
+        MySubscriptionRequest mySubsReq = new MySubscriptionRequest();
+        mySubsReq.type=mySubsReq.type.ADD;
+        mySubsReq.topic=topic_name;
+        String json = gson.toJson(mySubsReq);
+        try{
+            session.getBasicRemote().sendText(json);
+            subscriberMap.put(topic_name, subscriber);
+            System.out.println("INFO -> WebSocet -> Subscribed successfully to topic '"+topic_name+"'.");
+
+        } 
+        catch (Exception exx) {
+    //        exx.printStackTrace(); 
+              System.out.println("INFO -> WebSocket -> Trouble sending subscription req");
+        }
+    }
+    else{
+        System.out.println("WARNING -> WebSocket -> Only one subscriber per topic allowed");
+    }
+ }
+   
 
   public static synchronized void removeSubscriber(String topic_name) {
-      subscriberMap.remove(topic_name);
+      if (!subscriberMap.containsKey(topic_name)){
+        Gson gson = new Gson();
+        MySubscriptionRequest mySubsReq = new MySubscriptionRequest();
+        mySubsReq.type=mySubsReq.type.REMOVE;
+        mySubsReq.topic=topic_name;
+        String json = gson.toJson(mySubsReq);
+        try{
+            session.getBasicRemote().sendText(json);
+            subscriberMap.remove(topic_name);
+            System.out.println("INFO -> WebSocet -> Unsubscribed successfully from '"+topic_name+"'.");
+        } 
+        catch (Exception exx) {
+            //exx.printStackTrace(); 
+            System.out.println("ERROR -> WebSocket -> Trouble removing subscription req");
+        }
+      }
+    } //...
     
-    //...
-    
-  }
 
   public static void close() {
     try {
@@ -63,24 +96,16 @@ public class WebSocketClient {
 
   @OnMessage
   public void onMessage(String message) {
-    System.out.println("DEBUG -> Websocket -> Got message");
     Gson gson = new Gson();
     System.out.println(message);
-    
     //on receiving message, as we do not know if it is a Message
     //or a MyCloseTopic, one of the two try-catch will produce
     //an exception, but it does not matter, the exception is hiden.
-
     try {
       Message the_message = gson.fromJson(message, Message.class);
       subscriberMap.get(the_message.getTopic().getName()).onEvent(the_message.getTopic().getName(), the_message.getContent());
-      
-      //...
-      
     } catch (Exception e) {
-        
-        System.out.println("DEBUG -> Websocket -> Got message, was not ordinary text");
-
+        System.out.println("Info -> Websocket -> Got subscription close message ");
     }
 
     try {
@@ -89,10 +114,7 @@ public class WebSocketClient {
       //...
       
     } catch (Exception e) {
-        
-        System.out.println("DEBUG -> Websocket -> Got message, was not a subscription close message");
-
+        System.out.println("Info -> Websocket -> Got message ");
     }
   }
-
 }
