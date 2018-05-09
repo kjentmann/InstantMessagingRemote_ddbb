@@ -13,7 +13,7 @@ import util.MyLogin;
  *
  * @author juanluis
  */
-public class Client_John {
+public class Client_login {
 
   public static void main(String[] args) {
     
@@ -33,6 +33,9 @@ public class Client_John {
         MyLogin login = new MyLogin();
         login.login = "john";
         login.password = "1234";
+        LoginSwing loginbox = new LoginSwing();
+        //loginbox.createAndShowLogin();
+        
         User user_john = apiREST_User.loginUser(login);
         ClientSwing client = new ClientSwing(new TopicManagerStub(user_john));
         client.createAndShowGUI();
