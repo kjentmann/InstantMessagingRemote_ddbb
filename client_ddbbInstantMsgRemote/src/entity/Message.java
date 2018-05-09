@@ -74,5 +74,13 @@ public class Message implements Serializable {
   public String toString() {
     return "entity.Message[ id=" + id + " ]";
   }
-  
+/*
+    public void setTopic(String topic) {
+        Topic setTopic = new Topic();
+        setTopic.setName(topic);
+        this.topic=setTopic;
+        
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+  */
 }

@@ -79,6 +79,7 @@ public class PublisherFacadeREST extends AbstractFacade<Publisher> {
     Query query = em.createQuery("select p from Publisher p where p.user=:user");
     query.setParameter("user", entity.getUser());
     List list = query.getResultList();
+    System.out.println("DEBUG ->Server->PubREST. Try to delete by user:" +entity.getUser());
     if(list.isEmpty()){
       return ;
     }

@@ -38,7 +38,7 @@ public class apiREST_Subscriber {
       return null;
     }
   }
-  public static void deleteSubscriber(Subscriber subscriber) {
+  public static boolean deleteSubscriber(Subscriber subscriber) {
     try {
       URL url = new URL(Cons.SERVER_REST+"/entity.subscriber/delete");
       HttpURLConnection ucon = (HttpURLConnection) url.openConnection();
@@ -62,9 +62,11 @@ public class apiREST_Subscriber {
       while ((line = in.readLine()) != null) {
         System.out.println(line);
       }
+      return true;
 
     } catch (Exception e) {
       e.printStackTrace();
+      return false;
     }
   }
   public static List<Subscriber> mySubscriptions(User user) {

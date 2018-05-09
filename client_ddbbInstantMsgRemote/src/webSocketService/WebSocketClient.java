@@ -1,6 +1,8 @@
 package webSocketService;
 
 import apiREST.Cons;
+import apiREST.apiREST_Subscriber;
+import apiREST.apiREST_Topic;
 import com.google.gson.Gson;
 import entity.Message;
 import entity.Topic;
@@ -39,12 +41,13 @@ public class WebSocketClient {
     
   //only one subscriber per topic allowed:
   public static synchronized void addSubscriber(String topic_name, Subscriber subscriber) {
-    
-    //...
+    subscriberMap.put(topic_name,subscriber);
+     //...
     
   }
 
   public static synchronized void removeSubscriber(String topic_name) {
+      subscriberMap.remove(topic_name);
     
     //...
     
@@ -60,7 +63,7 @@ public class WebSocketClient {
 
   @OnMessage
   public void onMessage(String message) {
-
+    System.out.println("DEBUG -> Websocket -> Got message");
     Gson gson = new Gson();
     System.out.println(message);
     
@@ -70,19 +73,24 @@ public class WebSocketClient {
 
     try {
       Message the_message = gson.fromJson(message, Message.class);
+      subscriberMap.get(the_message.getTopic().getName()).onEvent(the_message.getTopic().getName(), the_message.getContent());
       
       //...
       
     } catch (Exception e) {
+        
+        System.out.println("DEBUG -> Websocket -> Got message, was not ordinary text");
 
     }
 
     try {
       MySubscriptionClose mySubsClose = gson.fromJson(message, MySubscriptionClose.class);
-      
+      subscriberMap.get(mySubsClose.topic).onClose(mySubsClose.topic, mySubsClose.cause.toString());
       //...
       
     } catch (Exception e) {
+        
+        System.out.println("DEBUG -> Websocket -> Got message, was not a subscription close message");
 
     }
   }

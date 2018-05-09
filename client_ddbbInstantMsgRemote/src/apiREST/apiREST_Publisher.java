@@ -6,6 +6,7 @@ import entity.Publisher;
 import entity.User;
 import java.io.*;
 import java.net.*;
+import publisher.PublisherStub;
 
 public class apiREST_Publisher {
   public static Publisher create_and_return_Publisher(Publisher publisher) {
@@ -96,4 +97,8 @@ public class apiREST_Publisher {
       return null;
     }
   }
+
+    //public static PublisherStub create_and_return_Publisher(PublisherStub newPub) {
+     //   throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+   // }
 }

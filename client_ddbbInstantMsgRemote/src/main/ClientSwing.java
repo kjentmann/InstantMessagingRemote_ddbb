@@ -1,6 +1,8 @@
 package main;
 
 import apiREST.apiREST_Topic;
+import apiREST.apiREST_Subscriber;
+
 import entity.Message;
 import subscriber.SubscriberImpl;
 import java.awt.*;
@@ -99,17 +101,18 @@ public class ClientSwing {
     mainPanel.add(argumentP, BorderLayout.PAGE_END);
     mainPanel.add(topicsP, BorderLayout.LINE_START);
 
-    //this is where you restore the user profile
-    clientSetup();
     messages_TextArea.setEditable(false);
     topic_list_TextArea.setEditable(false);
     my_subscriptions_TextArea.setEditable(false);
     publisher_TextArea.setEditable(false);
 
-    
+    //this is where you restore the user profile
     //frame.pack();
     frame.setVisible(true);
      messages_TextArea.append(getTime() + "SERVER: Client "+((TopicManagerStub)topicManager).user.getLogin()+ " "+((TopicManagerStub)topicManager).server_status + "\n"); 
+    clientSetup();
+
+     updateTopics();
      argument_TextField.grabFocus();
 
   }
@@ -127,16 +130,33 @@ public class ClientSwing {
       return arg;
   }
   
+  private void updateClientPublisher(String topic){
+    publisherTopic=topic;
+    publisher_TextArea.setText(null);
+    publisher_TextArea.append(topic + "\n");
+    messages_TextArea.append(getTime() + "SYSTEM: You are publisher of topic '"+ topic + "̈́'.\n"); 
+  }
+  
   private void clientSetup() {
     publisher=topicManager.publisherOf();
-      for (entity.Subscriber registeredSub : topicManager.mySubscriptions()){
-           SubscriberImpl restoredSub = new SubscriberImpl(ClientSwing.this);
-           my_subscriptions.put(registeredSub.getTopic().getName(), restoredSub);
-           for( Message message : topicManager.messagesFrom(registeredSub.getTopic())){
-               restoredSub.onEvent(registeredSub.getTopic().getName(), message.getContent());
-           }
-      }
-  }//this is where you restore the user profile
+    if (publisher!=null){
+        updateClientPublisher(publisher.topicName());
+    }
+    else{
+       messages_TextArea.append(getTime() + "SERVER: You are not registered as a publisher of any topic.\n"); 
+    }
+    for (entity.Subscriber registeredSub : topicManager.mySubscriptions()){
+        SubscriberImpl restoredSub = new SubscriberImpl(ClientSwing.this);
+        //restoredSub=apiREST_Subscriber.create_and_return_Subscriber(registeredSub);
+        my_subscriptions.put(registeredSub.getTopic().getName(), restoredSub);
+        my_subscriptions_TextArea.append(registeredSub.getTopic().getName() + "\n");
+        messages_TextArea.append(getTime() + "SERVER: You are registered as subscriber of topic '"+ registeredSub.getTopic().getName() + "̈́'. Fetching message log:\n"); 
+        for( Message message : topicManager.messagesFrom(registeredSub.getTopic())){
+            restoredSub.onEvent(registeredSub.getTopic().getName(), message.getContent());
+        }
+   }
+
+  }//
 
   
   private void updateTopics(){
@@ -166,19 +186,24 @@ public class ClientSwing {
                 messages_TextArea.append(getTime() + "SYSTEM: Missing input.\n"); 
             }
             else{
-                 if (topic.equals(publisherTopic))
-                        System.out.println("WARNING -> ClientsWing -> Already publishing on topic");
+                 if (topic==publisherTopic){
+                    messages_TextArea.append(getTime() + "SYSTEM: Already publishing on topic.\n"); 
+                    System.out.println("WARNING -> ClientsWing -> Already publishing on topic");
+                    return;
+                 }
                  else if (publisherTopic!=null){
-                        System.out.println("INFO -> Clientswing -> Trying to remove : " + publisherTopic);
+                        System.out.println("INFO -> Clientswing -> Trying to remove topic: " + publisherTopic);
                         topicManager.removePublisherFromTopic(publisherTopic);
 
                     }
                 publisher = topicManager.addPublisherToTopic(topic);
-                publisherTopic=topic;
-                publisher_TextArea.setText(null);
-                publisher_TextArea.append(topic + "\n");
-                messages_TextArea.append(getTime() + "SYSTEM: You are publisher of topic '"+ topic + "̈́'.\n"); 
-            }
+                if (publisher!=null){
+                    //Server has added the publisher
+                    updateClientPublisher(topic);
+                }
+                else
+                    messages_TextArea.append(getTime() + "SERVER: Failed to add topic '"+ topic + "̈́'.\n"); 
+                }
             updateTopics();
         }
     }
@@ -221,6 +246,7 @@ public class ClientSwing {
                 }
             }
             catch(Exception ex){
+                messages_TextArea.append(getTime() + "SYSTEM: Error, no active subscribers to remove.\n");
                System.out.println("ERROR -> Clientswing -> Error, no active subscribers to remove.");
             }
             updateTopics();
@@ -229,8 +255,8 @@ public class ClientSwing {
   
     class postEventHandler implements ActionListener {
         public void actionPerformed(ActionEvent e) {
+            String event = getArg();
             if (publisher != null){
-                String event = getArg();
                 updateTopics();
                 if (!event.isEmpty()){
                     publisher.publish(publisherTopic, event);

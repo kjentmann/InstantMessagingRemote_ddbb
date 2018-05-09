@@ -40,13 +40,19 @@ public class MessageFacadeREST extends AbstractFacade<Message> {
   @Override
   @Consumes({"application/xml", "application/json"})
   public void create(Message entity) {
-    //we check out if the topic exists for this message:
+    System.out.println("DEBUG -> Server -> MessageREST ->  Got message");
+
+      //we check out if the topic exists for this message:
     Query query = em.createQuery("select t from Topic t where t.name=:name");
     query.setParameter("name", entity.getTopic().getName());
     List list = query.getResultList();
     if(!list.isEmpty()){
-      super.create(entity);
+          System.out.println("DEBUG -> Server -> MessageREST ->  MEssage topic does exist");
+
+        super.create(entity);
       WebSocketServer.notifyNewMessage(entity);
+      System.out.println("DEBUG -> Server -> MessageREST ->  Webserver notify sendt");
+
     }
   }
   
